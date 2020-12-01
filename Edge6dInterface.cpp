@@ -35,109 +35,25 @@ int main()
     eP_plarformPosition Pp;
     eP_userInclgravityAndCentrifugal Pg;
     
-    double testing_frequency[7] = { 0.5,1,3,5,8,12,15 };
-    double testing_Amplitude[5] = { 0.3,0.5,0.7,0.9,1.2 };
+    double testing_frequency[9] = { 0.5,1,4,3,5,8,12,15,20 };
+    double testing_Amplitude[7] = { 0.0001,0.002,0.01,0.02,0.03,0.9,1.2 };
 
-    int freqIndex = 0;
-    int aIndex = 0;
-    while (freqIndex < 8)
+    int freqIndex = 1;
+    int aIndex = 2;
+    std::cin >> freqIndex;
+    std::cin >> aIndex;
+    t = 0;
+    auto start = std::chrono::high_resolution_clock::now();
+
+    while (1)
     {
-        while (aIndex < 5)
-        {
-            while (k < 6)
-            {
-                switch (k)
-                {
-
-                case 0:
-                    std::cout << "start Tx motion \n";
-                    break;
-                case 1:
-                    std::cout << "start Ty motion \n";
-                    break;
-                case 2:
-                    std::cout << "start Tz motion \n";
-                    break;
-                case 3:
-                    std::cout << "start Rx motion\n";
-                    break;
-                case 4:
-                    std::cout << "start Ry motion \n";
-                    break;
-                case 5:
-                    std::cout << "start Rz motion \n";
-                    break;
-                }
-                t = 0;
-                dt = 0;
-
-                while (t < 10)//i<10)
-                {
-                    auto start = std::chrono::high_resolution_clock::now();
-
-                    switch (k)
-                    {
-                    case 0:
-                        sine = inputFromSineAccelaration(testing_Amplitude[aIndex], TXLIMIT*pow((2.0f * M_PI * testing_frequency[freqIndex]), 2), testing_frequency[freqIndex], t, dt, 0);
-                        dt = 0;
-                        Pp.setValues(sine, Pp.Tx);
-                        break;
-                    case 1:
-                        sine = inputFromSineAccelaration(testing_Amplitude[aIndex], TYLIMIT * pow((2.0f * M_PI * testing_frequency[freqIndex]), 2), testing_frequency[freqIndex], t, dt, 0);
-                        dt = 0;
-                        Pp.setValues(sine, Pp.Ty);
-                        break;
-                    case 2:
-                        sine = inputFromSineAccelaration(testing_Amplitude[aIndex], TZLIMIT * pow((2.0f * M_PI * testing_frequency[freqIndex]), 2), testing_frequency[freqIndex], t, dt, 0);
-                        dt = 0;
-                        Pp.setValues(sine, Pp.Tz);
-                        break;
-                    case 3:
-                        sine = inputFromSineAccelaration(testing_Amplitude[aIndex]*10 * M_PI / 180, RLIMIT * pow((2.0f * M_PI * testing_frequency[freqIndex]), 2), testing_frequency[freqIndex], t, dt, 1);
-                        dt = 0;
-                        Pp.setValues(sine, Pp.Rx);
-                        break;
-                    case 4:
-                        sine = inputFromSineAccelaration(testing_Amplitude[aIndex]*10 * M_PI / 180, RLIMIT * pow((2.0f * M_PI * testing_frequency[freqIndex]), 2), testing_frequency[freqIndex], t, dt, 1);
-                        dt = 0;
-                        Pp.setValues(sine, Pp.Ry);
-                        break;
-                    case 5:
-                        sine = inputFromSineAccelaration(testing_Amplitude[aIndex]*10 * M_PI / 180, RLIMIT * pow((2.0f * M_PI * testing_frequency[freqIndex]), 2), testing_frequency[freqIndex], t, dt, 1);
-                        dt = 0;
-                        Pp.setValues(2 * sine, Pp.Rz);
-                        break;
-                    }
-
-
-                    while (dt < 0.01)
-                    {
-                        auto end = std::chrono::high_resolution_clock::now();
-                        elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
-                        dt = (float)elapsed_time.count()*1.0 / 1000000000.0f;
-
-                    }
-                    t += dt;
-                    gforce6dCom << Pp;
-                    //   std::cout << "current time  " << t << "  dt:  " << dt << "\n";
-
-                }
-                auto start = std::chrono::high_resolution_clock::now();
-
-                while (dt < 1)
-                {
-                    auto end = std::chrono::high_resolution_clock::now();
-                    elapsed_time = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-                    dt = elapsed_time.count() / 1000000.0f;
-
-                }
-                k++;
-            }
-            k = 0;
-            aIndex++;
-        }
-        freqIndex++;
-        aIndex = 0;
+        auto end = std::chrono::high_resolution_clock::now();
+        elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+        t = (float)elapsed_time.count() * 1.0f / 1000000000.0f;
+        sine = inputFromSineAccelaration(testing_Amplitude[aIndex], TZLIMIT * pow((2.0f * M_PI * testing_frequency[freqIndex]), 2), testing_frequency[freqIndex], t, dt, 0);
+        Pp.setValues(sine, Pp.Tz);
+        gforce6dCom << Pp;
+        Sleep(5);
 
     }
 
@@ -157,7 +73,7 @@ float inputFromSineAccelaration(float accMax,float limit, float frequency, float
     if (accMax > limit)
         accMax = limit;
     float posAmplitude = -accMax / pow((2.0f * M_PI * frequency), 2);
-    pos = posAmplitude * sin(2.0f * M_PI * frequency * time);
+    pos = accMax * sin(2.0f * M_PI * frequency * time);
     speed = posAmplitude *(2.0f * M_PI * frequency)*sin(2.0f * M_PI * frequency * time);//speed phase +90 to avoid cosine discontinuuity on t=0 
     acc = -posAmplitude * pow((2.0f * M_PI * frequency),2) * sin(2.0f * M_PI * frequency * time);
    //std::cout <<time<<";"<< acc << ";" << speed << ";" << pos<<"\n";
